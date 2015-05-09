@@ -8,27 +8,53 @@
 
 <body>
   <div class="container-fluid">
+  <nav class="navbar navbar-default">
 
-  Ratings
-  <hr>
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/">Judgemental Eye</a>
+      </div>
+      <div>
+        <ul class="nav navbar-nav">
+          <li class="active"><a href="/">Home</a></li>
+          <li><a href="/movies">Movies</a></li>
+          <li><a href="/users">Users</a></li>
+        </ul>
+        <ul class="nav navbar-nav navbar-right">
 
+          {% if 'logged_in_email' in session %}
+          <li>
+            <a href="/logout">Logout</a>
+          </li>
+          {% else %}
+          <li>
+            <a href="/login">Login</a>
+          </li>
+          <li>
+            <a href="/registration">Register</a>
+          </li>
+          {% endif %}
+       </ul>
+     </div>
+
+    </div>
+  </nav>
   <div>
-    <p> <a href="/">Homepage</a></p>
-    <p><a href="/movies">Movies</a></p>
-    <p><a href="/users">Users</a></p>
+    {% if 'logged_in_email' in session %}
+    <p>
+      You are logged in as {{ session['logged_in_email'] }}
+    </p>
+    {% else %}
+    <p>
+      You are not logged in.
+    </p>
+    {% endif %}
+
+
+
+
   </div>
-  {% if 'logged_in_email' in session %}
-    <div>
-        <p>You are logged in as {{ session['logged_in_email'] }} </p>
-        <p><a href="/logout">Logout</a> </p>
-    </div>
-  {% else %}
-     <div>
-     <p>You are not logged in. </p>
-     <p> <a href="/login">Login</a> </p>
-     <p> <a href="/registration">Register</a> </p>
-    </div>
-     {% endif %}
+
        <!-- Show flashed messages -->
   {% with messages = get_flashed_messages() %}
       {% for message in messages %}

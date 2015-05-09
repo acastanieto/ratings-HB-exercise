@@ -71,8 +71,6 @@ def display_and_rate_movie(id):
             eye_rating = eye_rating.movie_score
 
         if eye_rating and effective_rating:
-            print type(eye_rating)
-            print type(effective_rating)
             difference = abs(eye_rating - effective_rating)
 
         else:

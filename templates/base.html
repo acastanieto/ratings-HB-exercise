@@ -2,20 +2,25 @@
 <html>
 <head>
   <title>Ratings</title>
+  <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" rel="stylesheet">
+  <link href="/static/project.css" rel="stylesheet">
 </head>
 
 <body>
+  <div class="container-fluid">
+
   Ratings
   <hr>
+
   <div>
     <p> <a href="/">Homepage</a></p>
     <p><a href="/movies">Movies</a></p>
     <p><a href="/users">Users</a></p>
   </div>
   {% if 'logged_in_email' in session %}
-    <div> 
-        <p>You are logged in as {{ session['logged_in_email'] }} </p> 
-        <p><a href="/logout">Logout</a> </p> 
+    <div>
+        <p>You are logged in as {{ session['logged_in_email'] }} </p>
+        <p><a href="/logout">Logout</a> </p>
     </div>
   {% else %}
      <div>
@@ -34,6 +39,6 @@
   {% block content %} put your content here {% endblock %}
 
 
-
+</div>
 </body>
 </html>

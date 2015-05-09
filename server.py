@@ -39,22 +39,65 @@ def movie_list():
 def display_and_rate_movie(id):
 
     """Displays movie information and adds new movie rating or updates existing rating by user."""
+    movie_object = Movie.query.filter_by(movie_id=id).one()
 
 
     if "logged_in_email" in session:
         logged_in_email = session["logged_in_email"]
-        logged_in_user_id = User.query.filter_by(email=logged_in_email).one().user_id # this gets the id of the logged in user
+        logged_in_user = User.query.filter_by(email=logged_in_email).one()
+        logged_in_user_id = logged_in_user.user_id # this gets the id of the logged in user
         # query for the rating that has the user_id = logged_in_user_id and the movie_id = id
         existing_rating = Ratings.query.filter_by(user_id = logged_in_user_id, movie_id = id).first() # if the user has not rated the movie before, existing_rating will = None
         if existing_rating: # if our Ratings query returned a rating object
             user_rating_string = "Your current rating for this movie is %d" % (existing_rating.movie_score)
+            effective_rating = existing_rating.movie_score # if user has rated this movie, judgemental_eye will judge the existing_rating (effective_rating)
         else:
             ## prediction code goes here.
-            user_rating_string = "You have not yet rated this movie.  Your predicted rating is...."
+            prediction = logged_in_user.predict_rating(movie_object) # prediction rating for logged-in user for the movie; if predict_rating method finds no similarities, will be None
+            if prediction:
+                user_rating_string = "You have not yet rated this movie.  Your predicted rating is %.2f." % prediction
+            else:
+                user_rating_string = "You have not yet rated this movie."
+
+            effective_rating = prediction # if a predicted rating for user was found, judgemental eye will judge their predicted rating (effective_rating); otherwise effective_rating will be None
+
+        the_eye = User.query.filter_by(email="eye@judge.com").one()
+        eye_rating = Ratings.query.filter_by(user_id=the_eye.user_id, movie_id=movie_object.movie_id).first()
+
+        if eye_rating is None:
+            eye_rating = the_eye.predict_rating(movie_object)
+
+        else:
+            eye_rating = eye_rating.movie_score
+
+        if eye_rating and effective_rating:
+            print type(eye_rating)
+            print type(effective_rating)
+            difference = abs(eye_rating - effective_rating)
+
+        else:
+            difference = None
+
+        BERATEMENT_MESSAGES = [
+        "I suppose you don't have such bad taste after all.",
+        "I regret every decision that I've ever made that has brought me" +
+            " to listen to your opinion.",
+        "Words fail me, as your taste in movies has clearly failed you.",
+        "That movie is great. For a clown to watch. Idiot.",
+        "Words cannot express the awfulness of your taste."
+        ]
+
+        if difference is not None:
+            message = BERATEMENT_MESSAGES[int(difference)]
+            beratement = '"I\'ve rated this movie a %d.  %s"' % (eye_rating, message)
+
+        else:
+            beratement = "I have nothing to say to you right now."
+
 
         if request.method == "GET":
             movie_object = Movie.query.filter_by(movie_id=id).one()
-            return render_template("movie_details.html", movie=movie_object, user_rating_string=user_rating_string)
+            return render_template("movie_details.html", movie=movie_object, user_rating_string=user_rating_string, beratement=beratement)
 
         else:
             new_rating_score = int(request.form.get("rating"))
@@ -66,7 +109,7 @@ def display_and_rate_movie(id):
                 db.session.commit()
                 update_string = "Your existing rating for %s is updated from %d to %d." % (existing_rating.movie.movie_name, existing_rating_temp, new_rating_score)
                 flash(update_string)
-                return redirect("/movies")
+                return redirect("/movies/" + str(existing_rating.movie.movie_id))
 
             else: # if our Ratings query returned None, add a new rating to the database with the new_rating score
                 rating = Ratings(user_id=logged_in_user_id, movie_id=id, movie_score=new_rating_score)
@@ -77,9 +120,8 @@ def display_and_rate_movie(id):
 
                 flash(new_rating_string)
 
-                return redirect("/movies")
+                return redirect("/movies/" + str(rating.movie.movie_id))
     else:
-        movie_object = Movie.query.filter_by(movie_id=id).one()
         return render_template("movie_details.html", movie=movie_object)
 
 
@@ -105,8 +147,8 @@ def process_login():
             flash("Successfully logged in.")
             return redirect('/user/' + str(user_object.user_id))
          else:
-            flash("Password does not match user email.") 
-            return redirect('/login') 
+            flash("Password does not match user email.")
+            return redirect('/login')
     else:
         flash("No such email")
         return redirect('/login')
@@ -132,7 +174,7 @@ def process_registration():
         user = User(email=user_email, password=user_password, age=user_age, zipcode=user_zipcode)
         db.session.add(user)
         db.session.commit()
-        flash("You have successfully registered.  Please log in.")      
+        flash("You have successfully registered.  Please log in.")
         return redirect('/login')
 
 @app.route('/logout')
@@ -140,7 +182,7 @@ def logout():
     """Logs user out"""
 
     del session["logged_in_email"]
-    flash("You have successfully logged out.") 
+    flash("You have successfully logged out.")
     return redirect('/')
 
 @app.route("/users")

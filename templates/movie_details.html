@@ -10,10 +10,13 @@
   </ul>
     {% if 'logged_in_email' in session %}
 
-  
+
         <h3>Rate this movie</h3>
 
         <p>{{user_rating_string}}</p>
+        <p> Judgemental Eye says:  {{beratement}} </p>
+
+        </p>
 
         <form action="/movies/{{movie.movie_id}}", method="POST">
           <label>
@@ -26,19 +29,19 @@
           <button type="submit">Submit rating</button>
         </form>
     {% else %}
-    <p> Please log in to rate a movie.</p>   
-    {% endif %} 
+    <p> Please log in to rate a movie.</p>
+    {% endif %}
 
-        <h4>Ratings for this movie</h4> 
+        <h4>Ratings for this movie</h4>
           <ul>
                 {% for rating in movie.ratings %}
                 <li> {{rating.movie_score}}</li>
                 {% endfor %}
-          </ul>  
-        
- 
+          </ul>
 
-  
+
+
+
 
 
 
